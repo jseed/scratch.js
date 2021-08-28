@@ -1,6 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EditorFromTextArea, fromTextArea } from 'codemirror';
 import 'codemirror/mode/javascript/javascript';
+import { fromEvent, Observable, Subscription } from 'rxjs';
+import { EvaluatorService } from './evaluator.service';
+import { debounceTime } from 'rxjs/operators';
 
 
 @Component({
@@ -8,7 +11,9 @@ import 'codemirror/mode/javascript/javascript';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, OnDestroy {
+
+  private readonly EDITOR_DEBOUNCE_TIME = 300;
 
   private readonly DEFAULT_EDITOR_OPTS = {
       theme: 'dracula',
@@ -20,6 +25,14 @@ export class EditorComponent implements OnInit {
 
   inputEditor: EditorFromTextArea;
   outputEditor: EditorFromTextArea;
+
+  inputChange$: Observable<any>;
+
+  private subscriptions = new Subscription();
+
+  constructor(
+    private evaluator: EvaluatorService,
+  ) {}
 
   ngOnInit(): void {
 
@@ -33,7 +46,21 @@ export class EditorComponent implements OnInit {
       readOnly: true,
     });
 
+    this.inputChange$ = fromEvent(this.inputEditor, 'change');
+
+    this.subscriptions.add(
+      this.inputChange$.pipe(
+        debounceTime(this.EDITOR_DEBOUNCE_TIME),
+      ).subscribe(() => {
+        const code = this.inputEditor.getValue();
+        const result = this.evaluator.evaluate(code);
+        this.outputEditor.setValue(result);
+      })
+    );
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 
 }
