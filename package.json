@@ -19,6 +19,7 @@
     "@angular/platform-browser": "~11.0.9",
     "@angular/platform-browser-dynamic": "~11.0.9",
     "@angular/router": "~11.0.9",
+    "@babel/standalone": "^7.15.3",
     "codemirror": "^5.62.3",
     "escodegen": "^2.0.0",
     "esprima": "^4.0.1",

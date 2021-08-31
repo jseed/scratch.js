@@ -1,6 +1,8 @@
 import { Injectable, Renderer2, RendererFactory2 } from '@angular/core';
 import * as esprima from 'esprima';
 import * as escodegen from 'escodegen';
+import * as Babel from '@babel/standalone';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,10 +20,11 @@ export class EvaluatorService {
     this.renderer.appendChild(document.body, this.sandboxEl);
   }
 
-  evaluate(code: string): string {
+  evaluate(rawCode: string): string {
     const results = [];
 
     try {
+      const { code } = Babel.transform(rawCode, {});
       const program = esprima.parse(code);
       const body = program.body;
 
